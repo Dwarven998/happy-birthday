@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Journey</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500&family=Great+Vibes&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink-50: #fdf2f8;
+            --pink-100: #fce7f3;
+            --pink-200: #fbcfe8;
+            --pink-300: #f9a8d4;
+            --pink-400: #f472b6;
+            --pink-500: #ec4899;
+            --pink-800: #9d174d;
+            --rose-50: #fff1f2;
+            --rose-100: #ffe4e6;
+            --rose-200: #fecdd3;
+            --rose-300: #fda4af;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--pink-50);
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .font-script {
+            font-family: 'Great Vibes', cursive;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.15);
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Envelope 3D Styles */
+        .perspective-container { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .flap-origin-top { transform-origin: top; }
+        .letter-origin-bottom { transform-origin: bottom; }
+
+        /* Custom Clip Paths for Envelope Flaps */
+        .clip-left-flap { clip-path: polygon(0 0, 50% 50%, 0 100%); }
+        .clip-right-flap { clip-path: polygon(100% 0, 50% 50%, 100% 100%); }
+        .clip-bottom-flap { clip-path: polygon(0 100%, 50% 50%, 100% 100%); }
+        .clip-top-flap { clip-path: polygon(0 0, 100% 0, 50% 55%); }
+
+        /* Continuous Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1.5); opacity: 0.5; }
+            50% { transform: scale(1.6); opacity: 0.8; }
+        }
+        .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+        @keyframes particle-rise {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            animation: particle-rise linear infinite;
+        }
+
+        /* Scroll Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        .animate-on-scroll.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .scale-on-scroll {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        .scale-on-scroll.in-view {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 text-slate-800 min-h-screen relative">
+
+    <!-- Particles Container -->
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Music Controller -->
+    <div id="music-btn" class="fixed top-6 right-6 z-50 glass-panel p-3 rounded-full cursor-pointer flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95">
+        <div class="relative">
+            <i data-lucide="music" class="w-5 h-5 text-pink-500 opacity-50 transition-opacity" id="music-icon"></i>
+            <span id="music-indicator" class="hidden absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full animate-ping"></span>
+        </div>
+        <span id="music-text" class="hidden group-hover:block text-xs font-medium text-pink-600 transition-opacity">Play Music</span>
+    </div>
+
+    <!-- SCENE 1: The Envelope -->
+    <div id="envelope-scene" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black/10 backdrop-blur-[2px] transition-all duration-1000">
+        
+        <div id="envelope-text" class="mb-12 text-center opacity-0 translate-y-12 transition-all duration-1000">
+            <h1 class="font-serif text-4xl md:text-5xl text-pink-800 mb-4 drop-shadow-sm">A Special Message</h1>
+            <p class="text-pink-600 font-medium tracking-wide">Waiting just for you...</p>
+        </div>
+
+        <div id="envelope-wrapper" class="relative cursor-pointer animate-float perspective-container w-80 h-56 md:w-96 md:h-64">
+            
+            <!-- Glowing aura -->
+            <div class="absolute inset-0 bg-pink-400/30 blur-3xl rounded-full animate-pulse-glow pointer-events-none z-0"></div>
+
+            <div class="relative w-full h-full transform-style-3d z-10">
+                <!-- Back of envelope -->
+                <div class="absolute inset-0 bg-rose-200 rounded-lg shadow-inner border border-rose-300"></div>
+
+                <!-- The Letter -->
+                <div id="letter" class="absolute top-2 left-4 right-4 bottom-2 bg-white rounded flex flex-col items-center justify-center p-6 border border-pink-100 shadow-md letter-origin-bottom z-10">
+                    <div class="w-12 h-12 bg-pink-100 rounded-full mb-4 flex items-center justify-center">
+                        <i data-lucide="heart" class="w-6 h-6 text-pink-400 fill-pink-400"></i>
+                    </div>
+                    <div class="w-full h-2 bg-pink-100 rounded mb-2"></div>
+                    <div class="w-3/4 h-2 bg-pink-100 rounded mb-2"></div>
+                    <div class="w-full h-2 bg-pink-100 rounded"></div>
+                </div>
+
+                <!-- Front Flaps -->
+                <div class="absolute inset-0 overflow-hidden rounded-lg pointer-events-none z-20">
+                    <div class="absolute inset-0 bg-rose-100 border-r border-rose-200 shadow-[2px_0_10px_rgba(0,0,0,0.05)] clip-left-flap"></div>
+                    <div class="absolute inset-0 bg-rose-100 border-l border-rose-200 shadow-[-2px_0_10px_rgba(0,0,0,0.05)] clip-right-flap"></div>
+                    <div class="absolute inset-0 bg-rose-300 clip-bottom-flap"></div>
+                </div>
+
+                <!-- Top Flap (Animated) -->
+                <div id="top-flap" class="absolute top-0 left-0 right-0 h-full bg-rose-300 border-b border-rose-400 drop-shadow-md z-30 flap-origin-top clip-top-flap">
+                    <!-- Wax Seal -->
+                    <div id="wax-seal" class="absolute left-1/2 bottom-[45%] -translate-x-1/2 translate-y-1/2 w-12 h-12 bg-red-400 rounded-full flex items-center justify-center shadow-lg border-2 border-red-500 z-40 transition-all duration-300">
+                        <i data-lucide="heart" class="w-5 h-5 text-white fill-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tap Indicator -->
+            <div id="tap-indicator" class="absolute -bottom-16 left-1/2 -translate-x-1/2 text-pink-500 font-medium flex items-center gap-2 animate-pulse z-20 w-max">
+                <span>Tap to open</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCENE 2: The Journey (Initially Hidden) -->
+    <div id="journey-container" class="relative z-10 w-full hidden opacity-0">
+        
+        <!-- Hero Section -->
+        <section class="min-h-[90vh] flex flex-col items-center justify-center px-4 relative overflow-hidden">
+            <div class="text-center z-10 mt-20 animate-on-scroll">
+                <h2 class="font-script text-4xl md:text-6xl text-pink-400 mb-2">Happy Birthday</h2>
+                <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 font-bold mb-6 drop-shadow-sm pb-2">
+                    To My Babyy Babii!
+                </h1>
+                <p class="text-lg md:text-xl text-pink-700/80 max-w-2xl mx-auto font-light leading-relaxed">
+                I want you to enjoy your special day to the fullest, surrounded by love, laughter, and all the things that make you happiest.  I love you! Scroll moo!!  
+                </p>
+            </div>
+
+            <div class="absolute bottom-10 flex flex-col items-center gap-2 text-pink-400 animate-float">
+                <span class="text-sm font-medium uppercase tracking-widest">Scroll Down</span>
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+            </div>
+
+            <!-- Decorative blurs -->
+            <div class="absolute top-1/4 left-10 w-64 h-64 bg-pink-300/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-10 w-96 h-96 bg-rose-300/20 rounded-full blur-3xl pointer-events-none"></div>
+        </section>
+
+        <!-- Message Section -->
+        <section class="py-32 px-4 relative">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-panel rounded-3xl p-8 md:p-16 relative overflow-hidden group scale-on-scroll">
+                    <!-- Gradients -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-pink-200/50 to-transparent rounded-full blur-2xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125"></div>
+                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-rose-200/50 to-transparent rounded-full blur-2xl -ml-32 -mb-32 transition-transform duration-700 group-hover:scale-125"></div>
+
+                    <div class="relative z-10">
+                        <i data-lucide="quote" class="w-12 h-12 text-pink-300 mb-6 opacity-50"></i>
+                        <h3 class="font-serif text-3xl md:text-4xl text-pink-800 mb-8 leading-tight">
+                            To the person who makes every day brighter, every laugh louder, and every moment magical.
+                        </h3>
+                        <div class="space-y-4 text-pink-700/80 md:text-lg leading-relaxed font-light">
+                            <p>Today is all about you. It's a celebration of the beautiful soul you are and sana ma enjoy mo ang araw na ito kase dasurv mo</p>
+                            <p>I wanted to create something special, a little digital corner just for us, to remind you how loved you are today and always.</p>
+                        </div>
+                        <div class="mt-8 flex items-center gap-3">
+                            <div class="w-12 h-[1px] bg-pink-300"></div>
+                            <span class="font-script text-2xl text-pink-500">With all my heart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline Section -->
+        <section class="py-24 px-4">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-16 animate-on-scroll">
+                    <h2 class="font-serif text-4xl text-pink-800">Our Journey</h2>
+                    <div class="w-24 h-1 bg-gradient-to-r from-transparent via-pink-300 to-transparent mx-auto mt-4"></div>
+                </div>
+
+                <div class="relative">
+                    <!-- Vertical Line -->
+                    <div class="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-[2px] bg-pink-200 md:-translate-x-1/2"></div>
+
+                    <div class="space-y-12">
+                        <!-- Timeline Item 1 -->
+                        <div class="relative flex flex-col md:flex-row items-start md:items-center animate-on-scroll">
+                            <div class="absolute left-[11px] md:left-1/2 w-5 h-5 bg-white border-4 border-pink-400 rounded-full md:-translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(244,114,182,0.5)] z-10"></div>
+                            <div class="ml-12 md:ml-0 w-full md:w-1/2 md:pr-16 md:text-right pt-0 pb-4">
+                                <div class="glass-panel p-6 rounded-2xl hover:bg-white/50 transition-colors duration-300">
+                                    <span class="text-pink-500 font-bold text-sm uppercase tracking-wider mb-2 block">The Beginning</span>
+                                    <h4 class="font-serif text-2xl text-pink-800 mb-2">Yung palagi ka ga chat sakin kasi crush moko shesh</h4>
+                                    <p class="text-pink-700/70">A day that changed everything. The start of our story.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Item 2 -->
+                        <div class="relative flex flex-col md:flex-row items-start md:items-center md:flex-row-reverse animate-on-scroll">
+                            <div class="absolute left-[11px] md:left-1/2 w-5 h-5 bg-white border-4 border-pink-400 rounded-full md:-translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(244,114,182,0.5)] z-10"></div>
+                            <div class="ml-12 md:ml-0 w-full md:w-1/2 md:pl-16 md:text-left pt-0 pb-4">
+                                <div class="glass-panel p-6 rounded-2xl hover:bg-white/50 transition-colors duration-300">
+                                    <span class="text-pink-500 font-bold text-sm uppercase tracking-wider mb-2 block">Memories</span>
+                                    <h4 class="font-serif text-2xl text-pink-800 mb-2">Hehe</h4>
+                                    <p class="text-pink-700/70">From mukbang moments to eating each other</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Item 3 -->
+                        <div class="relative flex flex-col md:flex-row items-start md:items-center animate-on-scroll">
+                            <div class="absolute left-[11px] md:left-1/2 w-5 h-5 bg-white border-4 border-pink-400 rounded-full md:-translate-x-1/2 mt-1 md:mt-0 shadow-[0_0_15px_rgba(244,114,182,0.5)] z-10"></div>
+                            <div class="ml-12 md:ml-0 w-full md:w-1/2 md:pr-16 md:text-right pt-0 pb-4">
+                                <div class="glass-panel p-6 rounded-2xl hover:bg-white/50 transition-colors duration-300">
+                                    <span class="text-pink-500 font-bold text-sm uppercase tracking-wider mb-2 block">Today</span>
+                                    <h4 class="font-serif text-2xl text-pink-800 mb-2">Celebrating You</h4>
+                                    <p class="text-pink-700/70">I want you to smile always and iwasan na magpaka stress. Malapit na tayo magkita. I'm always proud of you baby!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="py-32 overflow-hidden">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-16 flex flex-col items-center animate-on-scroll">
+                    <i data-lucide="camera" class="w-10 h-10 text-pink-400 mb-4"></i>
+                    <h2 class="font-serif text-4xl text-pink-800">Beautiful Moments</h2>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-8 md:gap-12">
+                    <!-- Polaroid 1 -->
+                    <div class="bg-white p-4 pb-12 rounded-lg shadow-xl border border-gray-100 relative w-64 md:w-72 -rotate-2 hover:rotate-0 hover:scale-105 hover:z-20 transition-all duration-300 scale-on-scroll">
+                        <div class="w-full h-64 overflow-hidden rounded bg-gray-100">
+                            <img src="images/1.png" alt="Flowers" class="w-full h-full object-cover hover:scale-110 transition-transform duration-700">
+                        </div>
+                        <div class="absolute bottom-4 left-0 right-0 text-center font-script text-xl text-gray-600">Memory 1</div>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/50 shadow-sm rotate-2"></div>
+                    </div>
+
+                    <!-- Polaroid 2 -->
+                    <div class="bg-white p-4 pb-12 rounded-lg shadow-xl border border-gray-100 relative w-64 md:w-72 rotate-3 hover:rotate-0 hover:scale-105 hover:z-20 transition-all duration-300 scale-on-scroll" style="transition-delay: 100ms;">
+                        <div class="w-full h-64 overflow-hidden rounded bg-gray-100">
+                            <img src="images/2.png" alt="Coffee" class="w-full h-full object-cover hover:scale-110 transition-transform duration-700">
+                        </div>
+                        <div class="absolute bottom-4 left-0 right-0 text-center font-script text-xl text-gray-600">Memory 2</div>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/50 shadow-sm -rotate-2"></div>
+                    </div>
+
+                    <!-- Polaroid 3 -->
+                    <div class="bg-white p-4 pb-12 rounded-lg shadow-xl border border-gray-100 relative w-64 md:w-72 -rotate-1 hover:rotate-0 hover:scale-105 hover:z-20 transition-all duration-300 scale-on-scroll" style="transition-delay: 200ms;">
+                        <div class="w-full h-64 overflow-hidden rounded bg-gray-100">
+                            <img src="images/3.png" alt="Sunset" class="w-full h-full object-cover hover:scale-110 transition-transform duration-700">
+                        </div>
+                        <div class="absolute bottom-4 left-0 right-0 text-center font-script text-xl text-gray-600">Memory 3</div>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/50 shadow-sm rotate-1"></div>
+                    </div>
+
+                    <!-- Polaroid 4 -->
+                    <div class="bg-white p-4 pb-12 rounded-lg shadow-xl border border-gray-100 relative w-64 md:w-72 rotate-2 hover:rotate-0 hover:scale-105 hover:z-20 transition-all duration-300 scale-on-scroll" style="transition-delay: 300ms;">
+                        <div class="w-full h-64 overflow-hidden rounded bg-gray-100">
+                            <img src="images/4.jpg" alt="Sparkles" class="w-full h-full object-cover hover:scale-110 transition-transform duration-700">
+                        </div>
+                        <div class="absolute bottom-4 left-0 right-0 text-center font-script text-xl text-gray-600">Memory 4</div>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/50 shadow-sm -rotate-3"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Finale Section -->
+        <section class="min-h-screen flex flex-col items-center justify-center px-4 relative py-32 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-pink-200/50 to-transparent pointer-events-none"></div>
+            
+            <div class="glass-panel p-8 md:p-16 rounded-full w-80 h-80 md:w-[500px] md:h-[500px] flex flex-col items-center justify-center text-center relative z-10 shadow-[0_0_100px_rgba(244,114,182,0.3)] scale-on-scroll">
+                <i data-lucide="sparkles" class="w-12 h-12 text-pink-400 mb-6 animate-pulse"></i>
+                <h2 class="font-serif text-4xl md:text-6xl text-pink-800 mb-4">Happy Birthday</h2>
+                <p class="font-script text-3xl md:text-4xl text-pink-500">I love you</p>
+                
+                <div class="absolute inset-4 rounded-full border border-pink-300/30 border-dashed pointer-events-none"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Initialization and Logic -->
+    <script>
+        // 1. Initialize Icons
+        lucide.createIcons();
+
+        // 2. Particle System Generator
+        const particleContainer = document.getElementById('particles-container');
+        const particleCount = 40;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random properties
+            const x = Math.random() * 100;
+            const size = Math.random() * 15 + 5;
+            const duration = Math.random() * 10 + 10;
+            const delay = Math.random() * 5;
+            const isHeart = Math.random() > 0.6;
+
+            particle.style.left = `${x}%`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+
+            if (isHeart) {
+                // Inline SVG for heart so it renders fast inside particles
+                particle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-300/40"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+            } else {
+                particle.classList.add('bg-white', 'rounded-full', 'blur-[2px]', 'opacity-60', 'shadow-[0_0_10px_rgba(255,255,255,0.8)]');
+            }
+
+            particleContainer.appendChild(particle);
+        }
+
+        // 3. Envelope Opening Animation (GSAP)
+        const envelopeWrapper = document.getElementById('envelope-wrapper');
+        const topFlap = document.getElementById('top-flap');
+        const waxSeal = document.getElementById('wax-seal');
+        const letter = document.getElementById('letter');
+        const envelopeScene = document.getElementById('envelope-scene');
+        const journeyContainer = document.getElementById('journey-container');
+        const tapIndicator = document.getElementById('tap-indicator');
+        const envelopeText = document.getElementById('envelope-text');
+        let isOpened = false;
+
+        // Fade in intro text on load
+        setTimeout(() => {
+            envelopeText.classList.remove('opacity-0', 'translate-y-12');
+        }, 500);
+
+        envelopeWrapper.addEventListener('click', () => {
+            if (isOpened) return;
+            isOpened = true;
+
+            // Stop hover float animation
+            envelopeWrapper.classList.remove('animate-float');
+            tapIndicator.style.display = 'none';
+            envelopeText.style.opacity = '0';
+
+            // GSAP Timeline for the cinematic opening sequence
+            const tl = gsap.timeline();
+
+            // Open flap
+            tl.to(waxSeal, { opacity: 0, scale: 0, duration: 0.3 })
+              .to(topFlap, { rotateX: 180, duration: 1, ease: "power2.inOut" }, "<")
+              
+              // Letter rises up
+              .to(letter, { y: -120, scale: 1.05, duration: 1, ease: "power2.out" })
+              
+              // Letter flies towards camera and fades
+              .to(letter, { y: -300, scale: 2.5, opacity: 0, duration: 1.5, ease: "power2.inOut" }, "+=0.5")
+              
+              // Scene fades out
+              .to(envelopeScene, { opacity: 0, scale: 1.2, filter: "blur(10px)", duration: 1.5, ease: "power2.inOut" }, "-=1")
+              
+              // Hide envelope scene and reveal journey
+              .set(envelopeScene, { display: "none" })
+              .set(journeyContainer, { display: "block" })
+              
+              // Fade in journey
+              .to(journeyContainer, { opacity: 1, duration: 1.5, ease: "power2.out" });
+        });
+
+        // 4. Scroll Animations (Intersection Observer)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll, .scale-on-scroll').forEach((el) => {
+            observer.observe(el);
+        });
+
+        // 5. Music Button Toggle with Audio Playback
+        const musicBtn = document.getElementById('music-btn');
+        const musicIcon = document.getElementById('music-icon');
+        const musicIndicator = document.getElementById('music-indicator');
+        const musicText = document.getElementById('music-text');
+        let isPlaying = false;
+
+        // Create audio element for the birthday song
+        const birthdayAudio = new Audio('music/Happy Birthday song Romantic version  romantic piano version.mp3');
+        birthdayAudio.loop = true; // Loop the song
+
+        musicBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                birthdayAudio.play();
+                musicIcon.classList.remove('opacity-50');
+                musicIcon.classList.add('text-pink-500');
+                musicIndicator.classList.remove('hidden');
+                musicText.textContent = "Pause Music";
+            } else {
+                birthdayAudio.pause();
+                musicIcon.classList.add('opacity-50');
+                musicIndicator.classList.add('hidden');
+                musicText.textContent = "Play Music";
+            }
+        });
+    </script>
+</body>
+</html>
